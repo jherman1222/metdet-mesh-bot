@@ -1,211 +1,111 @@
 # METDET mesh bot
 
-A small Python bot that sits on a computer next to a Meshtastic radio (TCP gateway), answers private DMs with Gemini, and serves a local admin UI.
+A Meshtastic camp helper that ran on playa at **Burning Man 2026**.
 
-Works on **macOS**, **Linux / Raspberry Pi**, and **Windows**, as long as the host can reach your radio over TCP and the internet (for Gemini / weather).
+People DM the gateway radio. The bot unlocks them, remembers a name, and answers over LoRa — weather, short web-backed Q&A (Gemini), sunrise / wind alerts, guitar chords, menus. A Mac Mini (or Pi) next to the radio does the internet part; phones only talk mesh.
 
-## Burning Man 2026 archive (browse the real engagement)
-
-This repo ships a **sanitized** snapshot of playa traffic so people can see what happened without your secrets:
-
-| What | Where |
-|---|---|
-| Static browser (GitHub Pages) | [`docs/`](docs/) |
-| SQLite snapshot | [`archive/bm2026/metdet-archive.db`](archive/bm2026/metdet-archive.db) |
-| Admin-style UI (read-only) | `python -m bot.archive` → [http://127.0.0.1:8788/](http://127.0.0.1:8788/) |
-
-Regenerate from a live `data/metdet.db` (never commit the live DB):
-
-```bash
-python scripts/export_public_archive.py
+```
+Your phone  --LoRa DM-->  Heltec gateway  --TCP-->  this bot  --internet-->  Gemini / weather
+                                              |
+                                         frozen admin archive (HTML)
 ```
 
-**Redacted from the public archive:** Gemini API key, `.env`, radio IP, channel invite / PSK URL, unlock passphrase.  
-**Kept:** mesh names, node IDs, public channel lines, bot DMs, Gemini Q&A.
+## Try the Burning Man 2026 archive (no install)
 
-## What you need (to run a live bot)
+This is a **frozen copy of the real admin UI** filled with playa engagement — queries people asked, public mesh traffic, bot DMs, who unlocked.
 
-1. A Meshtastic node with **TCP** enabled (WiFi/Ethernet), reachable from this machine  
-2. A free [Google AI Studio](https://aistudio.google.com/apikey) **Gemini API key**  
-3. Python **3.10+**  
-4. (Optional) [Node.js](https://nodejs.org/) so you can use **pm2** for auto-restart  
+**Open in your browser (works online):**  
+➜ **[Interactive frozen admin](https://jherman1222.github.io/metdet-mesh-bot/)**
 
-Only one client should talk TCP/Bluetooth to the gateway radio at a time — quit the phone Meshtastic app connection to that node before starting the bot.
+**Or download and open offline:**  
+➜ [metdet-bm2026-frozen-admin.html](docs/metdet-bm2026-frozen-admin.html) — save the file, double-click it. No server, no Python, no API key.
 
-## Security (read before publishing / hosting)
+Secrets (Gemini key, radio IP, channel invite / PSK, unlock word) were stripped. Mesh names and conversation text from the event are kept so you can see how it was actually used.
 
-| Keep private | Why |
-|---|---|
-| `.env` | Holds `GEMINI_API_KEY`, passphrase, admin node IDs, radio IP |
-| `data/` / live `*.db` | Local user DB (names, unlocks, alert prefs) — gitignored |
-| `backups/` | Full private DB copies — gitignored |
-| Admin UI (`127.0.0.1:8787`) | **No login** — do not expose to the public internet |
+---
 
-`.env.example` is the template. On clone, the installer copies it to `.env` and the **setup wizard** prompts for your Gemini key, radio IP/USB, unlock word, and admin node IDs.
+## Run your own live bot
 
-```bash
-# Confirm nothing sensitive is staged
-git status
-grep -R "AIza\|GEMINI_API_KEY=.\+" --include='*.py' --include='*.md' --include='*.env*' . || true
-```
+You do **not** need to hand-edit config files for a first run.
 
-Change `UNLOCK_PASSPHRASE` from the default. Treat admin node IDs like passwords for your mesh.
-
-## Install
-
-### macOS / Linux / Raspberry Pi
+1. Have a Meshtastic node with **TCP** on (Wi‑Fi) **or** plug it in over **USB**
+2. Get a free [Gemini API key](https://aistudio.google.com/apikey)
+3. Install + answer the **setup wizard** prompts:
 
 ```bash
-git clone https://github.com/YOUR_USER/metdet-mesh-bot.git
+git clone https://github.com/jherman1222/metdet-mesh-bot.git
 cd metdet-mesh-bot
 chmod +x scripts/install.sh
 ./scripts/install.sh
 ```
 
-The installer offers a **setup dialog** (browser or terminal) for Gemini key, Wi‑Fi IP or USB port, passphrase, and anti-spam pacing.
+The installer creates a virtualenv and opens the setup wizard (browser on Mac/Windows, or terminal). It asks for:
 
-### Windows (PowerShell)
+- Gemini API key  
+- Radio TCP IP **or** USB serial port  
+- Unlock word people DM to start  
+- Optional admin node IDs  
 
-```powershell
-git clone https://github.com/YOUR_USER/metdet-mesh-bot.git
-cd metdet-mesh-bot
-Set-ExecutionPolicy -Scope Process Bypass
-.\scripts\install.ps1
-```
-
-### Setup wizard (required for a live bot)
+Then:
 
 ```bash
-python -m bot.setup          # web on Mac/Windows, or pass --web / --cli
-python -m bot.setup --cli    # SSH / Raspberry Pi friendly
-```
-
-Or open **Setup** in the admin UI: [http://127.0.0.1:8787/setup](http://127.0.0.1:8787/setup)
-
-If you start the bot with no `GEMINI_API_KEY`, it opens the web setup dialog automatically and will not connect to a radio until you save a key.
-
-**What the wizard configures:** API key, TCP (radio IP) **or** USB serial port, unlock word, admin node IDs, rate limits / chunk pacing.
-
-**What it does not do:** put the radio on Wi‑Fi for you. You still enable Wi‑Fi once in the Meshtastic app and copy the IP (or plug in USB and pick the serial port from the list).
-
-### Browse the BM 2026 archive only (no API key needed)
-
-```bash
-source .venv/bin/activate   # after install
-python -m bot.archive
-# → http://127.0.0.1:8788/
-```
-
-## Run
-
-Foreground (good for first test):
-
-```bash
-# Mac / Linux / Pi
 source .venv/bin/activate
 python -m bot.main
 ```
 
-```powershell
-# Windows
-.\.venv\Scripts\python.exe -m bot.main
-```
+Your live admin UI is on **that computer only** (`http://127.0.0.1:8787/`). That address is localhost — it is not a public demo link. For the public demo, use the [frozen admin](https://jherman1222.github.io/metdet-mesh-bot/) above.
 
-Admin UI: [http://127.0.0.1:8787/](http://127.0.0.1:8787/)
+**Windows:** `.\scripts\install.ps1` then `.\.venv\Scripts\python.exe -m bot.main`
 
-From a phone node, DM the gateway radio your unlock word, set a name when asked, then `menu`.
+**Re-run setup anytime:** `python -m bot.setup`  
+If `GEMINI_API_KEY` is missing, starting the bot opens the wizard automatically.
 
-## Keep running after reboot / power loss
+Only one client should use the gateway radio at a time — disconnect the phone app from that node before starting the bot.
 
-`autorestart` in pm2 restarts the process if it crashes. **Surviving reboot** needs an OS startup hook once:
-
-### pm2 (recommended on Mac / Pi / most Linux)
+### Optional: keep it running (pm2)
 
 ```bash
 npm install -g pm2
 pm2 start ecosystem.config.cjs
-pm2 save
-pm2 startup
-# Run the command pm2 prints (often with sudo), then:
-pm2 save
+pm2 save && pm2 startup   # then run the command it prints
 ```
 
-Windows (Administrator PowerShell):
+---
 
-```powershell
-npm install -g pm2
-pm2 start ecosystem.config.cjs
-pm2 save
-pm2-startup install
-```
+## What people can DM
 
-Check: `pm2 status` · Logs: `pm2 logs metdet-mesh-bot`
-
-### systemd (Raspberry Pi / Linux alternative)
-
-Create `/etc/systemd/system/metdet-mesh-bot.service` (edit paths/user):
-
-```ini
-[Unit]
-Description=METDET Meshtastic bot
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-User=pi
-WorkingDirectory=/home/pi/metdet-mesh-bot
-Environment=PYTHONUNBUFFERED=1
-ExecStart=/home/pi/metdet-mesh-bot/.venv/bin/python -m bot.main
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now metdet-mesh-bot
-sudo systemctl status metdet-mesh-bot
-```
-
-## Mesh commands (DM only)
-
-| Command | Effect |
+| They send | What happens |
 |---|---|
-| *(unlock word)* | Unlock this node |
+| unlock word | Unlocks that radio |
 | `menu` / `help` | Short menu |
-| `intro` / `about` | Longer welcome (optional; not auto-sent) |
-| `iam Name` | Set how the bot addresses you |
-| `wx` / weather menu | Weather helpers |
+| `iam Name` | How the bot addresses them |
+| `wx` / `wx wind` / `wx watch`… | Weather helpers |
 | `chords …` | Guitar chords |
-| `more` | Next chunk of a long answer |
 | anything else (unlocked) | Short Gemini answer |
+| `.r …` | Continue the same chat |
+| `more` | Next chunk if a long reply was split |
 
-Onboarding is intentionally short: unlock → name → short tip + menu. Users who want the full README-style welcome say `intro`.
+---
 
-## Tuning multi-part DMs
+## Security
 
-LoRa often delivers packets out of order if several go out quickly. Defaults:
+| Private (never commit) | Why |
+|---|---|
+| `.env` | API key, passphrase, admin IDs, radio IP |
+| `data/` live database | Your camp’s runtime DB |
+| `backups/` | Full private copies |
 
-- Prefer fewer, fuller packets (`MAX_CHUNK_CHARS=200`, `MAX_CHUNKS=3`)
-- Wait between parts (`CHUNK_DELAY_SEC=15`) and request radio ACK (`wantAck`)
+`.env.example` is the blank template. Live DB stays gitignored; the **sanitized** BM2026 snapshot lives in `archive/bm2026/` and `docs/`.
 
-If you still see `(2/2)` before `(1/2)`, raise `CHUNK_DELAY_SEC` (e.g. `18`–`25`).
+Do not expose the live admin UI to the public internet — it has no login.
 
-## Architecture
+Rebuild the public HTML/DB from your live DB (optional):
 
+```bash
+python scripts/export_public_archive.py
 ```
-Phone / radio  --LoRa DM-->  Gateway Heltec (TCP)
-                                ^
-                                |
-                         this bot (Python)
-                                |
-                         Gemini + Open-Meteo + SQLite
-                                |
-                         Admin UI on localhost
-```
+
+---
 
 ## License
 

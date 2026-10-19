@@ -1,10 +1,13 @@
 """
-Read-only archive browser for the Burning Man 2026 public SQLite snapshot.
+Optional local Flask browser for the sanitized BM2026 SQLite snapshot.
+
+Prefer the public HTML frozen admin (no install):
+  https://jherman1222.github.io/metdet-mesh-bot/
+  docs/metdet-bm2026-frozen-admin.html
+
+This module is only if you want the live Flask admin chrome against archive/bm2026/*.db:
 
   python -m bot.archive
-  ARCHIVE_HTTP_PORT=8788 python -m bot.archive
-
-No radio, no Gemini, no outbound POSTs. Uses the same admin UI in archive mode.
 """
 
 from __future__ import annotations

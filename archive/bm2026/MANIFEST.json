@@ -1,7 +1,7 @@
 {
-  "title": "METDET mesh bot \u2014 Burning Man 2026 archive",
-  "exported_at": "2026-10-19T20:50:42Z",
-  "source_note": "Sanitized copy of playa engagement. Channel invite URLs and unlock passphrase removed. Names/node IDs are as used on the mesh.",
+  "title": "METDET \u2014 Burning Man 2026 archive",
+  "exported_at": "2026-10-19T21:02:31Z",
+  "source_note": "Frozen snapshot of real playa mesh engagement. Secrets (API keys, invite/PSK, unlock word) removed.",
   "db": "metdet-archive.db",
   "counts": {
     "users": 15,

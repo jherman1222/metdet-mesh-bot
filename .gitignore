@@ -9,6 +9,7 @@ data/
 *.db
 !archive/bm2026/metdet-archive.db
 !docs/metdet-archive.db
+# HTML archive is tracked (not matched by *.db)
 backups/
 .DS_Store
 node_modules/
