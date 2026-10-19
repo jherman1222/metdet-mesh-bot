@@ -1,0 +1,23 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+# Live runtime DB — do NOT commit. Public snapshot lives in archive/bm2026/
+data/
+*.db
+!archive/bm2026/metdet-archive.db
+!docs/metdet-archive.db
+backups/
+.DS_Store
+node_modules/
+.cursor/
+*.log
+.pm2/
+dist/
+build/
+*.egg-info/
+.idea/
+.vscode/
+Thumbs.db
